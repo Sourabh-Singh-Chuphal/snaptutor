@@ -3,7 +3,7 @@
 import logging
 import os
 
-from flask import Flask, jsonify, render_template, request
+from flask import Flask, jsonify, render_template, request, send_from_directory
 
 from tutor import VALID_LEVELS, VALID_MODES, run_tutor
 
@@ -49,6 +49,13 @@ def index():
 def health():
     """Health check endpoint."""
     return jsonify(status="ok")
+
+
+@app.get("/samples/<path:filename>")
+def get_sample(filename):
+    """Serve sample study images for demos and quick testing."""
+    samples_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "samples")
+    return send_from_directory(samples_dir, filename)
 
 
 @app.post("/api/solve")

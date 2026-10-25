@@ -696,6 +696,49 @@
     .skeleton-line:nth-child(4) { width: 85%; animation-delay: 0.3s; }
     .skeleton-line:nth-child(5) { width: 50%; animation-delay: 0.4s; }
 
+    /* ── Sample Quick Pickers ─────────────────────────────── */
+    .samples-bar {
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px dashed var(--border-strong);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .samples-title {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--ink-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .samples-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .sample-btn {
+      background: var(--surface-solid);
+      border: 1px solid var(--border-strong);
+      color: var(--ink);
+      font-family: inherit;
+      font-size: 0.82rem;
+      font-weight: 500;
+      padding: 6px 12px;
+      border-radius: var(--radius-full);
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .sample-btn:hover {
+      background: var(--brand-light);
+      border-color: var(--brand);
+      color: var(--brand);
+      transform: translateY(-1px);
+    }
+
     /* ── Responsive ────────────────────────────────────────── */
     @media (max-width: 480px) {
       h1 { font-size: 1.7rem; }
@@ -730,6 +773,17 @@
       </svg>
       <div class="drop-label" id="drop-label">Tap to take or choose a photo</div>
       <div class="drop-hint">or drop an image here · PNG, JPG, WebP · max 8 MB</div>
+    </div>
+
+    <!-- Quick Sample Selectors -->
+    <div class="samples-bar">
+      <span class="samples-title">💡 Or try a sample problem:</span>
+      <div class="samples-grid">
+        <button type="button" class="sample-btn" data-file="problem_math.jpg" data-subject="Algebra" data-q="Solve 2x^2 + 5x - 3 = 0 by factoring">📐 Math Problem</button>
+        <button type="button" class="sample-btn" data-file="diagram_circuit.jpg" data-subject="Physics" data-q="Find the resonant frequency of this RLC circuit">⚡ Circuit Diagram</button>
+        <button type="button" class="sample-btn" data-file="handwritten_notes.jpg" data-subject="Biology" data-q="Explain the Calvin cycle steps from my notes">📝 Handwritten Notes</button>
+        <button type="button" class="sample-btn" data-file="code_snippet.jpg" data-subject="Computer Science" data-q="What is the time complexity and how can I optimize this?">💻 Code Snippet</button>
+      </div>
     </div>
 
     <input type="file" id="file-input" accept="image/png,image/jpeg,image/webp" capture="environment" hidden aria-hidden="true">
@@ -917,6 +971,25 @@
   document.querySelectorAll('.btn[data-mode]').forEach(btn =>
     btn.addEventListener('click', () => run(btn.dataset.mode))
   );
+
+  // ── Sample Buttons ────────────────────────────────────────
+  document.querySelectorAll('.sample-btn').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const filename = btn.dataset.file;
+      try {
+        const resp = await fetch(`/samples/${filename}`);
+        if (!resp.ok) throw new Error('Failed to load sample');
+        const blob = await resp.blob();
+        const file = new File([blob], filename, { type: blob.type || 'image/jpeg' });
+        setFile(file);
+        if (btn.dataset.subject) $('subject-input').value = btn.dataset.subject;
+        if (btn.dataset.q) $('question-input').value = btn.dataset.q;
+      } catch (err) {
+        showError('Could not load sample: ' + err.message);
+      }
+    });
+  });
 
   // ── Core Request Logic ────────────────────────────────────
   async function run(mode) {
